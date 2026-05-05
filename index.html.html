@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portfolio // CyberDev</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --neon-cyan: #00f5ff;
+    --neon-pink: #ff006e;
+    --neon-green: #39ff14;
+    --neon-purple: #bf00ff;
+    --dark-bg: #020409;
+    --panel-bg: #080d18;
+    --panel-border: #0d2137;
+    --text-main: #c8e6ff;
+    --text-dim: #4a7a99;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--dark-bg);
+    color: var(--text-main);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    cursor: crosshair;
+  }
+
+  /* Scanline overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,245,255,0.01) 2px,
+      rgba(0,245,255,0.01) 4px
+    );
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  #blackhole-canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ─── NAV ─── */
+  nav {
+    padding: 1.5rem 0;
+    border-bottom: 1px solid rgba(0,245,255,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+  }
+
+  .logo {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.9rem;
+    color: var(--neon-cyan);
+    letter-spacing: 4px;
+    text-shadow: 0 0 10px var(--neon-cyan);
+  }
+
+  .nav-status {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--neon-green);
+    letter-spacing: 2px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .status-dot {
+    width: 6px; height: 6px;
+    background: var(--neon-green);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--neon-green);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* ─── HERO ─── */
+  .hero {
+    padding: 6rem 0 4rem;
+    position: relative;
+  }
+
+  .hero-tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--neon-pink);
+    letter-spacing: 4px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .hero-tag::before {
+    content: '';
+    width: 30px; height: 1px;
+    background: var(--neon-pink);
+    box-shadow: 0 0 6px var(--neon-pink);
+  }
+
+  h1 {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: -1px;
+    margin-bottom: 0.5rem;
+  }
+
+  .name-line {
+    color: #fff;
+    text-shadow:
+      0 0 20px rgba(0,245,255,0.4),
+      0 0 60px rgba(0,245,255,0.15);
+  }
+
+  .name-accent {
+    color: var(--neon-cyan);
+    text-shadow:
+      0 0 20px var(--neon-cyan),
+      0 0 60px rgba(0,245,255,0.4);
+    position: relative;
+  }
+
+  .title-line {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(0.9rem, 2vw, 1.1rem);
+    font-weight: 400;
+    color: var(--neon-purple);
+    letter-spacing: 6px;
+    margin: 1.5rem 0 2rem;
+    text-shadow: 0 0 10px var(--neon-purple);
+  }
+
+  .hero-bio {
+    font-size: 1.15rem;
+    font-weight: 300;
+    line-height: 1.8;
+    color: var(--text-main);
+    max-width: 580px;
+    margin-bottom: 3rem;
+    opacity: 0.85;
+  }
+
+  .hero-bio span {
+    color: var(--neon-cyan);
+    font-weight: 600;
+  }
+
+  /* Corner decorations */
+  .corner-decoration {
+    position: absolute;
+    width: 60px; height: 60px;
+  }
+
+  .corner-decoration.top-right {
+    top: 4rem; right: 0;
+    border-top: 2px solid var(--neon-cyan);
+    border-right: 2px solid var(--neon-cyan);
+    opacity: 0.4;
+  }
+
+  /* ─── DIVIDER ─── */
+  .section-divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 0 0 3rem;
+  }
+
+  .section-divider .label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 4px;
+    color: var(--neon-cyan);
+    white-space: nowrap;
+  }
+
+  .section-divider .line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(0,245,255,0.5), transparent);
+  }
+
+  /* ─── SKILLS ─── */
+  .skills-section { padding: 2rem 0 5rem; }
+
+  .skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .skill-category {
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-top: 2px solid var(--neon-cyan);
+    padding: 1.5rem;
+    position: relative;
+    transition: border-color 0.3s, transform 0.3s;
+  }
+
+  .skill-category:nth-child(2) { border-top-color: var(--neon-pink); }
+  .skill-category:nth-child(3) { border-top-color: var(--neon-purple); }
+  .skill-category:nth-child(4) { border-top-color: var(--neon-green); }
+
+  .skill-category:hover {
+    transform: translateY(-4px);
+    border-color: rgba(0,245,255,0.3);
+  }
+
+  .skill-category:nth-child(2):hover { border-color: rgba(255,0,110,0.3); }
+  .skill-category:nth-child(3):hover { border-color: rgba(191,0,255,0.3); }
+  .skill-category:nth-child(4):hover { border-color: rgba(57,255,20,0.3); }
+
+  .skill-cat-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 1.2rem;
+  }
+
+  .skill-icon {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    padding: 3px 8px;
+    border: 1px solid var(--neon-cyan);
+    color: var(--neon-cyan);
+    letter-spacing: 1px;
+  }
+
+  .skill-category:nth-child(2) .skill-icon { border-color: var(--neon-pink); color: var(--neon-pink); }
+  .skill-category:nth-child(3) .skill-icon { border-color: var(--neon-purple); color: var(--neon-purple); }
+  .skill-category:nth-child(4) .skill-icon { border-color: var(--neon-green); color: var(--neon-green); }
+
+  .skill-cat-name {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: #fff;
+  }
+
+  .skill-list {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .skill-tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    padding: 4px 12px;
+    background: rgba(0,245,255,0.05);
+    border: 1px solid rgba(0,245,255,0.2);
+    color: var(--text-main);
+    letter-spacing: 1px;
+    transition: all 0.2s;
+  }
+
+  .skill-tag:hover {
+    background: rgba(0,245,255,0.12);
+    border-color: var(--neon-cyan);
+    color: var(--neon-cyan);
+    cursor: default;
+  }
+
+  .skill-category:nth-child(2) .skill-tag:hover { border-color: var(--neon-pink); color: var(--neon-pink); background: rgba(255,0,110,0.08); }
+  .skill-category:nth-child(3) .skill-tag:hover { border-color: var(--neon-purple); color: var(--neon-purple); background: rgba(191,0,255,0.08); }
+  .skill-category:nth-child(4) .skill-tag:hover { border-color: var(--neon-green); color: var(--neon-green); background: rgba(57,255,20,0.08); }
+
+  /* ─── PROFICIENCY BARS ─── */
+  .proficiency-section { padding: 2rem 0 5rem; }
+
+  .prof-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem 3rem;
+  }
+
+  @media (max-width: 600px) { .prof-grid { grid-template-columns: 1fr; } }
+
+  .prof-item { margin-bottom: 0.5rem; }
+
+  .prof-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+
+  .prof-name {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text-main);
+    letter-spacing: 2px;
+  }
+
+  .prof-pct {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--neon-cyan);
+  }
+
+  .prof-bar-track {
+    height: 3px;
+    background: rgba(255,255,255,0.05);
+    position: relative;
+    overflow: visible;
+  }
+
+  .prof-bar-fill {
+    height: 100%;
+    background: var(--neon-cyan);
+    box-shadow: 0 0 8px var(--neon-cyan);
+    position: relative;
+    animation: barGrow 1.5s ease-out forwards;
+    transform-origin: left;
+  }
+
+  @keyframes barGrow {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+  }
+
+  .prof-bar-fill.pink { background: var(--neon-pink); box-shadow: 0 0 8px var(--neon-pink); }
+  .prof-bar-fill.purple { background: var(--neon-purple); box-shadow: 0 0 8px var(--neon-purple); }
+  .prof-bar-fill.green { background: var(--neon-green); box-shadow: 0 0 8px var(--neon-green); }
+
+  /* ─── FOOTER ─── */
+  footer {
+    border-top: 1px solid rgba(0,245,255,0.1);
+    padding: 2rem 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: gap;
+    gap: 1rem;
+  }
+
+  .footer-id {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    letter-spacing: 3px;
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 1.5rem;
+  }
+
+  .footer-links a {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 3px;
+    color: var(--text-dim);
+    text-decoration: none;
+    transition: color 0.2s, text-shadow 0.2s;
+  }
+
+  .footer-links a:hover {
+    color: var(--neon-cyan);
+    text-shadow: 0 0 8px var(--neon-cyan);
+  }
+
+  /* ─── GLITCH ANIMATION ─── */
+  .glitch {
+    position: relative;
+  }
+
+  .glitch::before,
+  .glitch::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .glitch::before {
+    color: var(--neon-pink);
+    animation: glitch1 3s infinite;
+    clip-path: polygon(0 20%, 100% 20%, 100% 40%, 0 40%);
+    opacity: 0;
+  }
+
+  .glitch::after {
+    color: var(--neon-cyan);
+    animation: glitch2 3s infinite;
+    clip-path: polygon(0 60%, 100% 60%, 100% 80%, 0 80%);
+    opacity: 0;
+  }
+
+  @keyframes glitch1 {
+    0%, 90%, 100% { opacity: 0; transform: translate(0); }
+    92% { opacity: 0.7; transform: translate(-3px, 1px); }
+    94% { opacity: 0; transform: translate(3px, -1px); }
+    96% { opacity: 0.5; transform: translate(-2px, 0); }
+  }
+
+  @keyframes glitch2 {
+    0%, 90%, 100% { opacity: 0; transform: translate(0); }
+    93% { opacity: 0.6; transform: translate(4px, 1px); }
+    95% { opacity: 0; transform: translate(-4px, -1px); }
+    97% { opacity: 0.4; transform: translate(2px, 0); }
+  }
+
+  /* ─── ANIMATE IN ─── */
+  .fade-up {
+    opacity: 0;
+    transform: translateY(24px);
+    animation: fadeUp 0.8s ease forwards;
+  }
+
+  .fade-up:nth-child(1) { animation-delay: 0.1s; }
+  .fade-up:nth-child(2) { animation-delay: 0.2s; }
+  .fade-up:nth-child(3) { animation-delay: 0.35s; }
+  .fade-up:nth-child(4) { animation-delay: 0.5s; }
+
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* typing cursor */
+  .cursor {
+    display: inline-block;
+    width: 2px;
+    height: 1em;
+    background: var(--neon-cyan);
+    margin-left: 4px;
+    vertical-align: middle;
+    animation: blink 1s step-end infinite;
+    box-shadow: 0 0 6px var(--neon-cyan);
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="blackhole-canvas"></canvas>
+
+<div class="container">
+
+  <!-- NAV -->
+  <nav>
+    <div class="logo">// YOSHIDA.EXE</div>
+    <div class="nav-status">
+      <div class="status-dot"></div>
+      ONLINE &nbsp;|&nbsp; AVAILABLE FOR HIRE
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="corner-decoration top-right"></div>
+
+    <div class="hero-tag fade-up">IDENTITY_ESTABLISHED</div>
+
+    <h1 class="fade-up">
+      <div class="name-accent glitch" data-text="YOSHIDA">YOSHIDA<span class="cursor"></span></div>
+    </h1>
+
+    <div class="title-line fade-up">CYBERSECURITY DEVELOPER &nbsp;/&nbsp; ETHICAL HACKER</div>
+
+    <p class="hero-bio fade-up">
+      yeah, i break things for a living — systems, assumptions, the occasional firewall.
+      <span>omnia vanitas</span> — everything's exploitable if you look long enough.
+      i write code that cuts deep, poke holes in whatever thinks it's safe,
+      and at the end of the day? <span>memento mori.</span>
+      the net's already on fire. might as well be the one holding the torch.
+    </p>
+  </section>
+
+  <!-- SKILLS -->
+  <section class="skills-section">
+    <div class="section-divider">
+      <span class="label">// SKILL_MATRIX</span>
+      <div class="line"></div>
+    </div>
+
+    <div class="skills-grid">
+
+      <div class="skill-category">
+        <div class="skill-cat-header">
+          <span class="skill-icon">01</span>
+          <span class="skill-cat-name">OFFENSIVE SEC</span>
+        </div>
+        <ul class="skill-list">
+          <li class="skill-tag">Penetration Testing</li>
+          <li class="skill-tag">Exploit Dev</li>
+          <li class="skill-tag">Red Teaming</li>
+          <li class="skill-tag">OSINT</li>
+          <li class="skill-tag">Social Engineering</li>
+          <li class="skill-tag">CTF</li>
+        </ul>
+      </div>
+
+      <div class="skill-category">
+        <div class="skill-cat-header">
+          <span class="skill-icon">02</span>
+          <span class="skill-cat-name">DEVELOPMENT</span>
+        </div>
+        <ul class="skill-list">
+          <li class="skill-tag">Python</li>
+          <li class="skill-tag">C / C++</li>
+          <li class="skill-tag">Bash Scripting</li>
+          <li class="skill-tag">Go</li>
+          <li class="skill-tag">JavaScript</li>
+          <li class="skill-tag">Rust</li>
+        </ul>
+      </div>
+
+      <div class="skill-category">
+        <div class="skill-cat-header">
+          <span class="skill-icon">03</span>
+          <span class="skill-cat-name">INFRASTRUCTURE</span>
+        </div>
+        <ul class="skill-list">
+          <li class="skill-tag">Linux / Unix</li>
+          <li class="skill-tag">Docker</li>
+          <li class="skill-tag">Networking</li>
+          <li class="skill-tag">Cloud (AWS)</li>
+          <li class="skill-tag">Firewalls</li>
+          <li class="skill-tag">VPN / TOR</li>
+        </ul>
+      </div>
+
+      <div class="skill-category">
+        <div class="skill-cat-header">
+          <span class="skill-icon">04</span>
+          <span class="skill-cat-name">TOOLS</span>
+        </div>
+        <ul class="skill-list">
+          <li class="skill-tag">Metasploit</li>
+          <li class="skill-tag">Burp Suite</li>
+          <li class="skill-tag">Wireshark</li>
+          <li class="skill-tag">Nmap</li>
+          <li class="skill-tag">Ghidra</li>
+          <li class="skill-tag">Kali Linux</li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- PROFICIENCY -->
+  <section class="proficiency-section">
+    <div class="section-divider">
+      <span class="label">// PROFICIENCY_LEVELS</span>
+      <div class="line"></div>
+    </div>
+
+    <div class="prof-grid">
+      <div class="prof-item">
+        <div class="prof-header">
+          <span class="prof-name">PYTHON</span>
+          <span class="prof-pct">95%</span>
+        </div>
+        <div class="prof-bar-track">
+          <div class="prof-bar-fill" style="width:95%"></div>
+        </div>
+      </div>
+
+      <div class="prof-item">
+        <div class="prof-header">
+          <span class="prof-name">NETWORK SECURITY</span>
+          <span class="prof-pct">90%</span>
+        </div>
+        <div class="prof-bar-track">
+          <div class="prof-bar-fill pink" style="width:90%"></div>
+        </div>
+      </div>
+
+      <div class="prof-item">
+        <div class="prof-header">
+          <span class="prof-name">PENETRATION TESTING</span>
+          <span class="prof-pct">88%</span>
+        </div>
+        <div class="prof-bar-track">
+          <div class="prof-bar-fill purple" style="width:88%"></div>
+        </div>
+      </div>
+
+      <div class="prof-item">
+        <div class="prof-header">
+          <span class="prof-name">LINUX</span>
+          <span class="prof-pct">92%</span>
+        </div>
+        <div class="prof-bar-track">
+          <div class="prof-bar-fill green" style="width:92%"></div>
+        </div>
+      </div>
+
+      <div class="prof-item">
+        <div class="prof-header">
+          <span class="prof-name">C / C++</span>
+          <span class="prof-pct">75%</span>
+        </div>
+        <div class="prof-bar-track">
+          <div class="prof-bar-fill" style="width:75%"></div>
+        </div>
+      </div>
+
+      <div class="prof-item">
+        <div class="prof-header">
+          <span class="prof-name">MALWARE ANALYSIS</span>
+          <span class="prof-pct">80%</span>
+        </div>
+        <div class="prof-bar-track">
+          <div class="prof-bar-fill pink" style="width:80%"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-id">UID_2025 &nbsp;/&nbsp; ENCRYPTED &nbsp;/&nbsp; PGP_VERIFIED</div>
+    <div class="footer-links">
+      <a href="#">GITHUB</a>
+      <a href="#">LINKEDIN</a>
+      <a href="#">CONTACT</a>
+    </div>
+  </footer>
+
+</div>
+<script>
+const canvas = document.getElementById('blackhole-canvas');
+const ctx = canvas.getContext('2d');
+let W, H, cx, cy, particles = [], time = 0;
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+  cx = W / 2; cy = H / 2;
+}
+window.addEventListener('resize', resize);
+resize();
+
+// Stars
+const stars = Array.from({length: 220}, () => ({
+  x: Math.random() * 2000 - 1000,
+  y: Math.random() * 2000 - 1000,
+  r: Math.random() * 1.2 + 0.2,
+  alpha: Math.random() * 0.6 + 0.1
+}));
+
+// Accretion disk particles
+for (let i = 0; i < 420; i++) {
+  const angle = Math.random() * Math.PI * 2;
+  const dist = 90 + Math.random() * 180;
+  particles.push({
+    angle,
+    dist,
+    speed: (0.003 + Math.random() * 0.006) * (Math.random() < 0.5 ? 1 : -1),
+    size: Math.random() * 1.8 + 0.3,
+    alpha: Math.random() * 0.8 + 0.1,
+    hue: Math.random() < 0.6 ? 185 + Math.random() * 30 : 290 + Math.random() * 40,
+    drift: (Math.random() - 0.5) * 0.001
+  });
+}
+
+function draw() {
+  time += 0.008;
+  ctx.clearRect(0, 0, W, H);
+
+  // Deep space bg
+  ctx.fillStyle = '#020409';
+  ctx.fillRect(0, 0, W, H);
+
+  // Stars
+  stars.forEach(s => {
+    const sx = cx + s.x * 0.4;
+    const sy = cy + s.y * 0.4;
+    if (sx < 0 || sx > W || sy < 0 || sy > H) return;
+    const twinkle = s.alpha + Math.sin(time * 1.5 + s.x) * 0.15;
+    ctx.beginPath();
+    ctx.arc(sx, sy, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(180,220,255,${twinkle})`;
+    ctx.fill();
+  });
+
+  // Gravitational lensing rings
+  for (let ring = 0; ring < 4; ring++) {
+    const ringR = 72 + ring * 22;
+    const grad = ctx.createRadialGradient(cx, cy, ringR - 4, cx, cy, ringR + 4);
+    grad.addColorStop(0, `rgba(0,245,255,0)`);
+    grad.addColorStop(0.5, `rgba(0,245,255,${0.04 - ring * 0.008})`);
+    grad.addColorStop(1, `rgba(0,245,255,0)`);
+    ctx.beginPath();
+    ctx.arc(cx, cy, ringR, 0, Math.PI * 2);
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = 8;
+    ctx.stroke();
+  }
+
+  // Accretion disk particles
+  particles.forEach(p => {
+    p.angle += p.speed;
+    p.dist += p.drift;
+    if (p.dist < 88) p.dist = 88 + Math.random() * 20;
+    if (p.dist > 310) p.dist = 90 + Math.random() * 30;
+
+    const px = cx + Math.cos(p.angle) * p.dist;
+    const py = cy + Math.sin(p.angle) * p.dist * 0.32;
+    const fade = Math.min(1, (p.dist - 88) / 40);
+    ctx.beginPath();
+    ctx.arc(px, py, p.size, 0, Math.PI * 2);
+    ctx.fillStyle = `hsla(${p.hue},100%,70%,${p.alpha * fade})`;
+    ctx.fill();
+  });
+
+  // Outer glow halo
+  const halo = ctx.createRadialGradient(cx, cy, 55, cx, cy, 260);
+  halo.addColorStop(0, 'rgba(0,0,0,0)');
+  halo.addColorStop(0.35, 'rgba(0,180,255,0.04)');
+  halo.addColorStop(0.6, 'rgba(140,0,255,0.03)');
+  halo.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.beginPath();
+  ctx.arc(cx, cy, 260, 0, Math.PI * 2);
+  ctx.fillStyle = halo;
+  ctx.fill();
+
+  // Event horizon — pure black core
+  const core = ctx.createRadialGradient(cx, cy, 0, cx, cy, 70);
+  core.addColorStop(0, 'rgba(0,0,0,1)');
+  core.addColorStop(0.7, 'rgba(0,0,0,1)');
+  core.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.beginPath();
+  ctx.arc(cx, cy, 70, 0, Math.PI * 2);
+  ctx.fillStyle = core;
+  ctx.fill();
+
+  requestAnimationFrame(draw);
+}
+draw();
+</script>
+</body>
+</html>
